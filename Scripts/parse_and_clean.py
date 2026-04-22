@@ -11,18 +11,16 @@ os.listdir(base_path)
 gl_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('gl')][0]
 hl_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('hl')][0]
 mcap_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('mcap')][0]
-wh_52_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('cm')][0]
-mr_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('ma')][0]
 pe_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('pe')][0]
 
-indices_to_include = ['India Vix', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500', 'Nifty IT',
+indices_to_include = ['India VIX', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500', 'Nifty IT',
                       'Nifty Bank', 'Nifty Realty', 'Nifty Infra', 'Nifty Energy', 'Nifty FMCG',
                       'Nifty Pharma', 'Nifty PSE', 'Nifty PSU Bank',
                       'Nifty Auto', 'Nifty Metal', 'Nifty Media']
 
 
 def loading_clean():
-    global gl_file, hl_file, mcap_file, wh_52_file, mr_file, pe_file
+    global gl_file, hl_file, mcap_file,  pe_file
 
     # --- 1. PD FILES — stack all 245 days ---------------------------
     pd_files = glob(stocks_data_path + 'Pd*.csv')
@@ -55,11 +53,13 @@ def loading_clean():
     gl_df = pd.read_csv(gl_file)
     gl_df.columns = gl_df.columns.str.strip().str.lower()
     gl_df = gl_df[gl_df['gain_loss'].isin(['G', 'L'])].copy()
+    gl_df = gl_df.drop_duplicates()
     print(f'GL: {gl_df.shape}')
 
     # --- 3. HL FILE ---------------------------
     hl_df = pd.read_csv(hl_file)
     hl_df.columns = hl_df.columns.str.strip().str.lower()
+    hl_df = hl_df.drop_duplicates()
     print(f'HL: {hl_df.shape}')
 
     # --- 4. MCAP FILE ---------------------------
@@ -69,28 +69,14 @@ def loading_clean():
     mcap_df = mcap_df.rename(columns={'market_cap(rs.)': 'mcap'})
     print(f'MCAP: {mcap_df.shape}')
 
-    # --- 5. 52-WEEK CM FILE ---------------------------
-    wh_52_df = pd.read_csv(wh_52_file, skiprows=2)
-    wh_52_df.columns = wh_52_df.columns.str.strip().str.lower().str.replace(' ', '_')
-    wh_52_df = wh_52_df[wh_52_df['series'].str.strip() == 'EQ'].copy()
-    print(f'52WK: {wh_52_df.shape}')
-
-    # --- 6. MA FILE ---------------------------
-    ma_index_df = pd.read_csv(mr_file, skiprows=8, nrows=186)
-    ma_stock_df = pd.read_csv(mr_file, skiprows=196)
-    ma_index_df.columns = ma_index_df.columns.str.strip().str.lower().str.replace(' ','_').str.replace('/','_')
-    ma_stock_df.columns = ma_stock_df.columns.str.strip().str.lower().str.replace(' ','_').str.replace('/','_')
-    print(f'MA Index: {ma_index_df.shape}')
-    print(f'MA Stock: {ma_stock_df.shape}')
-
-    # --- 7. PE FILE ---------------------------
+    # --- 5. PE FILE ---------------------------
     pe_df = pd.read_csv(pe_file)
     pe_df.columns = pe_df.columns.str.strip().str.lower().str.replace(' ', '_')
     print(f'PE: {pe_df.shape}')
 
-    return stocks_df, index_df, gl_df, hl_df, mcap_df, wh_52_df, ma_index_df, ma_stock_df, pe_df
+    return stocks_df, index_df, gl_df, hl_df, mcap_df, pe_df
 
-stocks_df, index_df, gl_df, hl_df, mcap_df, wh_52_df, ma_index_df, ma_stock_df, pe_df = loading_clean()
+stocks_df, index_df, gl_df, hl_df, mcap_df, pe_df = loading_clean()
 
 
 def merge_and_clean_stocks():
@@ -126,6 +112,23 @@ def merge_and_clean_stocks():
     hl_df['security'] = hl_df['security'].str.strip()
     hl_df = hl_df[hl_df['security'].isin(valid_securities)]
     print(f'NH filtered: {hl_df.shape}')
+    
+    
+        # --- most and least volatile index today ---------------------------
+    exclude = ['India VIX', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500']
+    latest_idx = index_df[index_df['date'] == index_df['date'].max()].copy()
+    latest_idx = latest_idx[~latest_idx['security'].isin(exclude)]
+    latest_idx['adr'] = ((latest_idx['high_price'] - latest_idx['low_price']) / latest_idx['close_price'])
+    most_volatile  = latest_idx.nlargest(1, 'adr')[['security', 'adr']].reset_index(drop=True)
+    least_volatile = latest_idx.nsmallest(1, 'adr')[['security', 'adr']].reset_index(drop=True)
+    volatility_df = pd.DataFrame({
+        'most_volatile_name': [most_volatile['security'].iloc[0]],
+        'most_volatile_adr':  [round(most_volatile['adr'].iloc[0], 5)],
+        'least_volatile_name': [least_volatile['security'].iloc[0]],
+        'least_volatile_adr':  [round(least_volatile['adr'].iloc[0], 5)]
+    })
+    volatility_df.to_csv('../DATA/volatility.csv', index=False)
+    print('volatility.csv saved')
     
 
 merge_and_clean_stocks()

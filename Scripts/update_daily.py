@@ -16,7 +16,7 @@ headers = {
     "Accept": "*/*",
 }
 
-indices_to_include = ['India Vix', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500', 'Nifty IT',
+indices_to_include = ['India VIX', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500', 'Nifty IT',
                       'Nifty Bank', 'Nifty Realty', 'Nifty Infra', 'Nifty Energy', 'Nifty FMCG',
                       'Nifty Pharma', 'Nifty PSE', 'Nifty PSU Bank',
                       'Nifty Auto', 'Nifty Metal', 'Nifty Media']
@@ -48,6 +48,14 @@ def download_today():
             response = requests.get(url=url, headers=headers)
 
             if response.status_code == 200:
+                
+                # --- delete old GL, HL, PE files ---------------------------
+                for f in os.listdir(other_csvs_path):
+                    if f.lower().startswith(('gl', 'hl', 'pe', 'mcap')):
+                        os.remove(os.path.join(other_csvs_path, f))
+                        print(f'Deleted old file: {f}')
+                
+                
                 print(f'Found: PR{date_str}.zip')
 
                 zip_path = f'../Data/Stock_Data/Zips/PR{date_str}.zip'
@@ -77,6 +85,8 @@ def download_today():
                     with open(pe_path, 'wb') as f:
                         f.write(pe_response.content)
                     print(f'Saved: PE_{date_str}.csv')
+                    
+
                 else:
                     print(f'PE not available for {date_str} — status {pe_response.status_code}')
 
@@ -181,6 +191,24 @@ def update_indices(date_str):
     updated = calc_mas(updated, 'security')
     updated.to_csv(output_path + 'indices.csv', index=False)
     print(f'indices.csv updated — {len(df)} new rows added')
+    
+    # --- update volatility ---------------------------
+    
+    exclude = ['India VIX', 'Nifty 50', 'NIFTY MIDSML 400', 'Nifty 500']
+    existing_idx = pd.read_csv(output_path + 'indices.csv')
+    latest_idx = existing_idx[existing_idx['date'] == existing_idx['date'].max()].copy()
+    latest_idx = latest_idx[~latest_idx['security'].isin(exclude)]
+    latest_idx['adr'] = ((latest_idx['high_price'] - latest_idx['low_price']) / latest_idx['close_price'])
+    most_volatile  = latest_idx.nlargest(1, 'adr')[['security', 'adr']].reset_index(drop=True)
+    least_volatile = latest_idx.nsmallest(1, 'adr')[['security', 'adr']].reset_index(drop=True)
+    volatility_df = pd.DataFrame({
+        'most_volatile_name': [most_volatile['security'].iloc[0]],
+        'most_volatile_adr':  [round(most_volatile['adr'].iloc[0], 5)],
+        'least_volatile_name': [least_volatile['security'].iloc[0]],
+        'least_volatile_adr':  [round(least_volatile['adr'].iloc[0], 5)]
+    })
+    volatility_df.to_csv(output_path + 'volatility.csv', index=False)
+    print(f'volatility.csv updated')
 
 
 def update_index_pct(date_str):
@@ -208,6 +236,8 @@ def update_index_pct(date_str):
             lambda x: f'+{round(x*100, 2)} % ▲' if x > 0 else f'{round(x*100, 2)} % ▼'
         )
 
+
+    
     index_latest.to_csv(output_path + 'index_latest.csv', index=False)
     print(f'index_latest.csv updated')
 
@@ -216,17 +246,27 @@ def update_gl_hl():
     gl_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('gl')][0]
     hl_file = other_csvs_path + [x for x in os.listdir(other_csvs_path) if x.lower().startswith('hl')][0]
 
+    # --- load valid securities from stocks_data ---------------------------
+    existing_stocks = pd.read_csv(output_path + 'stocks_data.csv')
+    valid_securities = existing_stocks['security'].str.strip().unique().tolist()
+
     gl_df = pd.read_csv(gl_file)
     gl_df.columns = gl_df.columns.str.strip().str.lower()
+    gl_df['security'] = gl_df['security'].str.strip()
     gl_df = gl_df[gl_df['gain_loss'].isin(['G', 'L'])].copy()
+    gl_df = gl_df[gl_df['security'].isin(valid_securities)]
     gl_df.to_csv(output_path + 'gainers_losers.csv', index=False)
+    gl_df = gl_df.drop_duplicates()
+    
     print(f'gainers_losers.csv updated — {len(gl_df)} rows')
 
     hl_df = pd.read_csv(hl_file)
     hl_df.columns = hl_df.columns.str.strip().str.lower()
+    hl_df['security'] = hl_df['security'].str.strip()
+    hl_df = hl_df[hl_df['security'].isin(valid_securities)]
     hl_df.to_csv(output_path + 'new_highs.csv', index=False)
+    hl_df = hl_df.drop_duplicates()
     print(f'new_highs.csv updated — {len(hl_df)} rows')
-
 
 # --- RUN ---
 date_str = download_today()
