@@ -9,13 +9,13 @@ An automated Python pipeline that downloads live NSE data daily and serves a 3-t
 ## Dashboard
 
 ### Market Overview
-![Market Overview](POWERBI - progess tracker/22-4-26 - Stocks - Mkt Overview.png)
+![Market Overview](PBI_Report_Progess_Tracker/22-4-26 - Stocks - Mkt Overview.png)
 
 ### Sector Pulse
-![Sector Pulse](POWERBI - progess tracker/22-4-26 - Stocks - Sector.png)
+![Sector Pulse](PBI_Report_Progess_Tracker/22-4-26 - Stocks - Sector.png)
 
 ### Stocks Deep Dive
-![Stocks](POWERBI - progess tracker/22-4-26 - Stocks.png)
+![Stocks](PBI_Report_Progess_Tracker/22-4-26 - Stocks.png)
 
 ---
 
