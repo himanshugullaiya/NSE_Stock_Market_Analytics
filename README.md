@@ -2,20 +2,24 @@
 
 An automated Python pipeline that downloads live NSE data daily and serves a 3-tab Power BI dashboard — Market Overview, Sector Pulse, and Stock Deep Dive.
 
-▶ [YouTube Demo](#) &nbsp;|&nbsp; 📊 [Live Dashboard](#)
+**▶ [YouTube Demo](#) &nbsp;|&nbsp; 📊 [Live Dashboard](#)**
 
 ---
 
-## Dashboard
+## Dashboard Preview
 
-### Market Overview
-![Market Overview](PowerBI_SnapShot/Mkt_Overview.png)
+**Market Overview**
+![Market Overview](PBI Report/GIFS/Overview.gif)
 
-### Sector Pulse
-![Sector Pulse](PowerBI_SnapShot/Sectors.png)
+---
 
-### Stocks Deep Dive
-![Stocks](PowerBI_SnapShot/Stocks.png)
+**Sector Pulse**
+![Sector Pulse](PBI Report/GIFS/Sector_Pulse.gif)
+
+---
+
+**Stocks Deep Dive**
+![Stocks](PBI Report/GIFS/Stocks.gif)
 
 ---
 
@@ -68,9 +72,11 @@ Trading Dashboard/
 │   ├── indices.csv
 │   ├── gainers_losers.csv
 │   └── new_highs.csv
+├── PBI Report/
+│   └── GIFS/
 └── README.md
 ```
 
 ---
 
-*Himanshu Gullaiya — Data Analyst | Python · Power BI · SQL*
+*[Himanshu Gullaiya](https://github.com/himanshugullaiya) — Data Analyst | Python · Power BI · SQL*
