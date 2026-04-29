@@ -2,7 +2,7 @@
 
 An automated Python pipeline that downloads live NSE data daily and serves a 3-tab Power BI dashboard — Market Overview, Sector Pulse, and Stock Deep Dive.
 
-[![YouTube](https://img.shields.io/badge/YouTube-Watch%20Project%20Walkthrough-grey?style=for-the-badge&logo=youtube&logoColor=white&labelColor=FF0000)](https://youtu.be/IlqGkjXsxPo?si=X5t7Ell5csV1UL4Y) &nbsp;|&nbsp; 📊 [Live Dashboard](#) &nbsp;|&nbsp; 📊 [Live Dashboard](#)**
+[![YouTube](https://img.shields.io/badge/YouTube-Watch%20Project%20Walkthrough-grey?style=for-the-badge&logo=youtube&logoColor=white&labelColor=FF0000)](https://youtu.be/IlqGkjXsxPo?si=X5t7Ell5csV1UL4Y) &nbsp;|&nbsp; 📊 [Live Dashboard](#) &nbsp;|&nbsp;
 
 ---
 
